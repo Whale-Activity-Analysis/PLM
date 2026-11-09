@@ -456,9 +456,9 @@ class Commands(commands.Cog):
     user_options = await self._run_blocking(mongodb.findUserOptions, interaction.user.id, interaction.guild.id)
     guild_options = await self._run_blocking(mongodb.findGuildOptions, interaction.guild.id)
  
-    player, bs_id, wartung = await self._run_blocking(getPlayerForBsId, bs_id)
-    if wartung:
-      return await interaction.edit_original_response(content=f"Brawl Stars API in Maintenance, try registering later!")
+    player, bs_id, api_unavailable = await self._run_blocking(getPlayerForBsId, bs_id)
+    if api_unavailable:
+      return await interaction.edit_original_response(content="Could not verify your ID: the Brawl Stars API is unavailable or access was denied. Please try again later or contact an admin if this persists.")
       
     if not player:
       await interaction.edit_original_response(content=f"Invalid ID: {bs_id}!")
@@ -505,9 +505,9 @@ class Commands(commands.Cog):
     user_options = await self._run_blocking(mongodb.findUserOptions, user.id, interaction.guild.id)
     guild_options = await self._run_blocking(mongodb.findGuildOptions, interaction.guild.id)
     
-    player, bs_id, wartung = await self._run_blocking(getPlayerForBsId, bs_id)
-    if wartung:
-      return await interaction.edit_original_response(content=f"Brawl Stars API in Maintenance, try registering later!")
+    player, bs_id, api_unavailable = await self._run_blocking(getPlayerForBsId, bs_id)
+    if api_unavailable:
+      return await interaction.edit_original_response(content="Could not verify your ID: the Brawl Stars API is unavailable or access was denied. Please try again later or contact an admin if this persists.")
     
     if not player:
       await interaction.edit_original_response(content=f"Invalid ID: {bs_id}!")

@@ -6,6 +6,9 @@ import os
 import re
 import time
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 """
 Load correct env
@@ -36,15 +39,25 @@ def getPlayerForBsId(bs_id):
       "Authorization": f"Bearer {envData['BsApi']}"
   }
   try:
-    response = requests.get(url, headers=headers, timeout=3).json()
-  except:
+    response = requests.get(url, headers=headers, timeout=3)
+  except requests.RequestException as error:
+    logger.warning("Brawl Stars player lookup failed: tag=%s error=%s", bs_id, type(error).__name__)
     return None, bs_id, True
-  if not "reason" in response:
-      return response, bs_id, False
-  elif response["reason"] == "inMaintenance":
-      return None, bs_id, True
-  else:
-      return None, bs_id, False
+
+  try:
+    player = response.json()
+  except ValueError:
+    logger.warning("Brawl Stars player lookup returned invalid JSON: tag=%s status=%s", bs_id, response.status_code)
+    return None, bs_id, True
+
+  reason = player.get("reason") if isinstance(player, dict) else None
+  if response.status_code == 200 and isinstance(player, dict) and player.get("tag") and not reason:
+    return player, bs_id, False
+  if response.status_code == 404 and reason == "notFound":
+    return None, bs_id, False
+
+  logger.warning("Brawl Stars player lookup rejected: tag=%s status=%s reason=%r", bs_id, response.status_code, str(reason)[:128])
+  return None, bs_id, True
     
       
 async def fetchBattleLog(bs_id):
